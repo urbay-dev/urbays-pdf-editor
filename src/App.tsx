@@ -89,7 +89,8 @@ export default function App() {
 
         // Load document with pdf.js to render pages
         // Convert arrayBuffer to a Uint8Array which is safer and fully supported by PDF.js
-        const typedArray = new Uint8Array(arrayBuffer);
+        // We slice / copy it so that we don't detach or lose ownership of the buffer
+        const typedArray = new Uint8Array(arrayBuffer.slice(0));
         const loadingTask = pdfjsLib.getDocument({ data: typedArray });
         const pdfDoc = await loadingTask.promise;
         const pageCount = pdfDoc.numPages;
@@ -99,7 +100,7 @@ export default function App() {
           name: file.name,
           size: file.size,
           pageCount,
-          arrayBuffer
+          arrayBuffer: arrayBuffer.slice(0) // Save a copy to prevent detached buffer issues
         });
 
         // Extract pages & render thumbnails
@@ -235,7 +236,8 @@ export default function App() {
 
         // Load document if not in cache
         if (!pdfLibDocsCache[pageItem.fileId]) {
-          pdfLibDocsCache[pageItem.fileId] = await PDFDocument.load(sourceFile.arrayBuffer);
+          // Send a sliced copy to prevent detaching/modifying the original buffer
+          pdfLibDocsCache[pageItem.fileId] = await PDFDocument.load(sourceFile.arrayBuffer.slice(0));
         }
 
         const srcDoc = pdfLibDocsCache[pageItem.fileId];
@@ -295,7 +297,7 @@ export default function App() {
               <FileText className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight text-slate-900 m-0">PDF Editor & Merger</h1>
+              <h1 className="text-xl font-bold tracking-tight text-slate-900 m-0">Urbays PDF Editor</h1>
               <p className="text-xs text-slate-500 m-0">Atur ulang, rotasi, hapus, dan gabung halaman PDF secara visual</p>
             </div>
           </div>
@@ -615,7 +617,7 @@ export default function App() {
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-xs text-slate-400 font-medium">
-          PDF Editor & Merger • Dibuat menggunakan React, TypeScript, dan Tailwind CSS. Semua pemrosesan data dilakukan secara lokal di peramban Anda secara aman.
+          Dibuat oleh Urbays 2026 
         </div>
       </footer>
     </div>
